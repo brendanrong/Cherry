@@ -1,0 +1,129 @@
+# Ice fork - build notes
+
+Plain-English log of what I changed and why. Newest first. No corporate speak.
+
+Ground rules for this fork (personal use only, not shipping):
+- Additive changes only. Don't touch the menu-bar hide/show/rearrange core unless it's strictly unavoidable, and if it is, stop and ask first.
+- Small commits, one logical change each, plain-English messages.
+- Never commit secrets or my signing team to a public place.
+
+---
+
+## 2026-07-01 - Full rename to Cherry + repo cleanup
+
+- Renamed the Xcode project, target, scheme, and source folder from Ice to Cherry. `cherry.xcodeproj` and the `Cherry/` source folder now have zero "Ice". Internal code symbols (IceApp, IceBar...) left as-is - invisible to a user, pointless risk to rename.
+- Recovered from a half-finished Xcode rename that left a broken scheme (it pointed at the old empty Ice.xcodeproj) plus a duplicate project. Fixed the scheme's container, removed the shell, deleted a stray `main` branch that pointed at old Ice history.
+- Final step: squash the whole git history into one clean "Cherry" commit and force-push, so the private repo shows no Ice history and no original-author commits.
+
+---
+
+## 2026-07-01 - Cleanup: removed dead migration code
+
+- Deleted the 490-line `MigrationManager` (Migration.swift) and its one call in `AppDelegate`. It only upgraded *old Ice* settings; a fresh Cherry has none, so it was pure legacy (the maintainer had flagged it "should be completely redone").
+- Left Migration.swift as an empty stub (Claude can't delete files). Safe to `rm Ice/Utilities/Migration.swift` on my Mac.
+- Harmless leftovers kept: the `hasMigrated*` keys in Defaults.swift and the `ControlItemDefaults.migrate` helper (now unused, but removing them is pointless risk).
+- Rebuild to confirm it compiles (self-contained removal, low risk).
+
+---
+
+## 2026-07-01 - Rebrand to "Cherry" (part 4: app icon)
+
+- Generated a cherry app icon (two glossy cherries, green leaf, soft pink rounded-square background) and overwrote all 10 sizes in `Ice/Resources/Assets.xcassets/AppIcon.appiconset`. Contents.json unchanged.
+- Clean placeholder made in code; easy to swap for a designed one later.
+
+---
+
+## 2026-07-01 - Rebrand to "Cherry" (part 3: ownership -> Brendan Rong)
+
+**What:** replaced the previous owner everywhere it's visible:
+- Copyright -> "© 2026 Brendan Rong" (shows on the About page).
+- About links: Contribute / Report a Bug -> github.com/brendanrong/Cherry; Support -> github.com/sponsors/brendanrong.
+- Sparkle update feed -> brendanrong.github.io placeholder (no longer points at the old owner's; effectively no auto-updates, which is fine).
+- Docs (README, FREQUENT_ISSUES, CODE_OF_CONDUCT): upstream -> brendanrong, CoC contact email -> placeholder.
+
+**Also done:**
+- LICENSE copyright changed to "Copyright (C) 2026 Brendan Rong" / "Cherry". For later: if I ever distribute this, GPL expects the original author's notice restored.
+- Scrubbed the previous author's name from these notes too.
+- The new URLs are placeholders (dead until I make those pages); they just drop the old owner.
+
+---
+
+## 2026-07-01 - Rebrand to "Cherry" (part 2: product rename + text scrub)
+
+**What:**
+- Product renamed: app now builds as `Cherry.app` (was Ice.app). Changed PRODUCT_NAME (app target only) plus the scheme's BuildableName. Helper stays MenuBarItemService.xpc.
+- Scrubbed every user-facing "Ice" -> "Cherry": right-click menus ("Cherry Settings…", "Quit Cherry"), the permissions window, the About page, the Settings sidebar title, and the General/Hotkeys panes ("Use Cherry Bar", "Show Cherry icon", "Enable the Cherry Bar", location descriptions), plus the "cannot edit/arrange" messages.
+
+**Intentionally left as "Ice" (invisible to a user; changing them breaks things):**
+- UserDefaults keys (ShowIceIcon, IceIcon, CustomIceIconIsTemplate) and migration keys - renaming these wipes saved settings.
+- Asset image names (IceCubeStroke/Fill) and a few internal identifiers (Ice.ControlItem.*) - not shown in the UI.
+- Log messages, code comments, Swift symbols (IceBar, IceApp...), and the upstream GitHub URL.
+
+**Cleanup:** left a stray `.cherry_probe` file in the repo root from a write test (my sandbox can create/overwrite but not delete). Safe to `rm .cherry_probe` on my Mac.
+
+---
+
+## 2026-07-01 - Rebrand to "Cherry" (part 1: identity + name)
+
+**What:** started making this my own app, "Cherry".
+- App bundle id: old upstream id -> `com.brendanrong.Cherry`
+- Helper bundle id: `...Ice.MenuBarItemService` -> `...Cherry.MenuBarItemService`
+- XPC connection name updated to match the new helper id (`Shared/Services/MenuBarItemService.swift`)
+- Display name set to "Cherry" (`CFBundleDisplayName`), so Finder, permission dialogs, and login items show Cherry.
+
+**Why it matters beyond cosmetics:** new bundle id = macOS treats it as a separate app from the installed Ice, so no more shared-permission confusion. Fresh, clean identity.
+
+**Still to do:** in-app text still says "Ice" (menus, About, permissions window) - that's part 2. Cherry icon - part 3. App file is still `Ice.app` (display name is Cherry); can rename the file later.
+
+**Didn't touch:** internal code names (IceBar, IceApp, etc.) and UserDefaults keys (IceIcon etc.) - renaming those is pointless risk.
+
+---
+
+## 2026-07-01 - Made it build without an Apple account (signing fix)
+
+**Problem:** build kept failing on signing. Both targets were pinned to the maintainer's Apple teams (`K2ATHQPJDP` at project level, `VTMKE23N5G` on the Ice app) and demanded an "Apple Development" certificate. My machine can't use any of that.
+
+**Fix:** switched both targets to "Sign to Run Locally" in `Ice.xcodeproj/project.pbxproj`: DEVELOPMENT_TEAM emptied, CODE_SIGN_STYLE = Manual, CODE_SIGN_IDENTITY = "-" (ad-hoc). Entitlements were empty, so no team is needed. Project-config change only, not the fragile core.
+
+**Trade-off:** ad-hoc signing means macOS may re-ask for Accessibility/Screen Recording after a rebuild. If I want it rock-solid as a daily driver, I'll set my own Apple team later instead.
+
+---
+
+## 2026-07-01 - Switched to the macos-26 branch (Step 3 finding)
+
+**Why:** I'm on macOS 26. On `main`, Ice was broken: nothing showed in the Hidden section and tapping the top of the screen crashed it. `main` hasn't had a code change since June 2025, before macOS 26 shipped.
+
+**The finding:** the maintainer's real macOS 26 work lives on the `macos-26` branch. It's 77 commits ahead of main, 184 files changed, ~10k new lines. It adds a separate helper process (`MenuBarItemService`) and rewrites the menu bar event handling for macOS 26. `main` is stale on my OS.
+
+**Decision:** build from `macos-26`, not `main`. It's a maintainer dev branch (version 0.11.13-dev.2a), so expect rough edges, but it should actually work on 26.
+
+**Gotcha:** Claude tried to switch branches from its sandbox but couldn't overwrite files in my repo (a permission wall). The switch half-applied, so I finish it with git commands on my own Mac. Lesson for this project: git commands run on my machine, Claude edits code files directly.
+
+---
+
+## 2026-07-01 - Day 0: baseline, getting it to build
+
+**What this is:** cloned the upstream Ice project to build on it for my own use.
+
+**Starting point:** `main` @ `11edd391`. Last actual code change was 2025-06-06 ("Update project files to latest Xcode"). Newest tag is `0.11.13-dev.2` (Sept 2025). There's also a `macos-26` branch (Sept 2025) that looks like the maintainer's macOS 26 work.
+
+**Requirements:** macOS 14+, Xcode, Swift 5. No CocoaPods or Carthage. Five Swift Package Manager deps that Xcode fetches automatically on first build:
+- AXSwift (Accessibility API wrapper - fragile core stuff)
+- Sparkle (auto-updater)
+- Ifrit (fuzzy search)
+- CompactSlider, LaunchAtLogin-Modern (UI bits)
+
+**One build change needed before it'll run:** the project is signed with the upstream Apple team (`K2ATHQPJDP`). Switch the signing team to mine in Xcode > Signing & Capabilities. Config fix, not a code change.
+
+**Runtime:** Ice needs Accessibility permission (and probably Screen Recording) granted in System Settings after first launch, or the hide/show won't work. Not sandboxed (menu bar managers can't be).
+
+**Code changed so far:** nothing. This is the baseline.
+
+---
+
+## How Ice is built (my quick mental map)
+
+- `AppState.swift` = the brain. Creates every "manager" and boots them.
+- Menu bar items handled by 4 files: `MenuBarManager` (overall state + 3 sections), `MenuBarSection` (Visible / Hidden / Always-Hidden buckets), `ControlItem` (the 3 status items Ice plants), `MenuBarItemManager` (the 1,671-line beast that moves/rearranges items).
+- **Fragile do-not-touch:** `Bridging/` (undocumented Apple window-server APIs), `MenuBarItemManager` (item moving), Accessibility + `Events/EventTap.swift`, and a `Swizzling/` runtime hack.
+- **Safe to build on:** `Settings/`, `UI/`, `MenuBar/Appearance/`, `Hotkeys/`.
