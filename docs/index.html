@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cherry — Menu Bar Manager for macOS</title>
+<style>
+  :root { --cherry:#e1223d; --cherry-dark:#b81a30; --ink:#1d1d1f; --muted:#6e6e73; --bg:#fff6f7; --line:#f2d6da; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:800px; margin:0 auto; padding:0 24px; }
+  header { text-align:center; padding:80px 24px 56px; }
+  header img { width:132px; height:132px; }
+  h1 { font-size:54px; letter-spacing:-1px; margin:14px 0 6px; }
+  .tag { font-size:20px; color:var(--muted); margin-bottom:28px; }
+  .btn { display:inline-block; background:var(--cherry); color:#fff; text-decoration:none; font-weight:600; font-size:18px; padding:14px 34px; border-radius:12px; transition:background .15s ease; }
+  .btn:hover { background:var(--cherry-dark); }
+  .req { font-size:14px; color:var(--muted); margin-top:14px; }
+  .credit { background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin:4px 0 40px; text-align:center; font-size:15px; color:var(--muted); }
+  .credit a { color:var(--cherry-dark); }
+  section { padding:30px 0; border-top:1px solid var(--line); }
+  h2 { font-size:25px; margin-bottom:14px; }
+  ul { list-style:none; }
+  li { padding:5px 0 5px 28px; position:relative; }
+  li::before { content:"🍒"; position:absolute; left:0; font-size:13px; top:8px; }
+  .notes li::before { content:"–"; color:var(--cherry); font-weight:700; top:5px; }
+  footer { text-align:center; color:var(--muted); font-size:13px; padding:44px 24px 64px; line-height:1.9; }
+  footer a { color:var(--cherry-dark); }
+</style>
+</head>
+<body>
+  <header>
+    <img src="cherry-icon.png" alt="Cherry app icon">
+    <h1>Cherry</h1>
+    <p class="tag">A menu bar manager for macOS.</p>
+    <a class="btn" href="https://github.com/brendanrong/Cherry/releases/latest">Download Cherry</a>
+    <p class="req">Requires macOS 14 or later &middot; Free &middot; Open source (GPL-3.0)</p>
+  </header>
+
+  <div class="wrap">
+    <div class="credit">
+      Cherry is a fork of <a href="https://github.com/jordanbaird/Ice">Ice</a> by Jordan Baird, rebranded with macOS&nbsp;26 fixes. The menu-bar engine is all Ice's work. For the original, actively maintained app, use <a href="https://github.com/jordanbaird/Ice">Ice</a>.
+    </div>
+
+    <section>
+      <h2>What it does</h2>
+      <ul>
+        <li>Hide, show, and rearrange menu bar items</li>
+        <li>An "always-hidden" section for things you rarely need</li>
+        <li>Reveal hidden items on hover, click, or scroll</li>
+        <li>Drag-and-drop layout, plus a separate bar for notch Macs</li>
+        <li>Search your menu bar items</li>
+        <li>Customize the menu bar's tint, shadow, border, and shape</li>
+        <li>Global hotkeys, launch at login, automatic updates</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Install</h2>
+      <ul class="notes">
+        <li>Download and open <strong>Cherry.dmg</strong>, then drag Cherry into Applications.</li>
+        <li>Launch it and grant <strong>Accessibility</strong> and <strong>Screen Recording</strong> in System Settings so it can manage the menu bar.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Changelog</h2>
+      <ul class="notes">
+        <li><strong>Latest</strong> — macOS 26 support (built on Ice's <code>macos-26</code> branch) and rebranded as Cherry.</li>
+      </ul>
+    </section>
+  </div>
+
+  <footer>
+    Cherry &copy; 2026 Brendan Rong &middot; based on <a href="https://github.com/jordanbaird/Ice">Ice</a> &copy; 2024 Jordan Baird &middot; <a href="https://github.com/brendanrong/Cherry/blob/main/LICENSE">GPL-3.0</a><br>
+    <a href="https://github.com/brendanrong/Cherry">Source on GitHub</a>
+  </footer>
+</body>
+</html>

@@ -9,6 +9,21 @@ Ground rules for this fork (personal use only, not shipping):
 
 ---
 
+## 2026-07-01 - Personal DMG (keeping Cherry private)
+
+- Decided to keep Cherry personal, not publish it. It's a GPL-3 fork and I stripped the original author's attribution; distributing publicly would mean restoring credit + open-sourcing under GPL. Not worth it for a personal tool. Personal use = zero obligations.
+- Added `make-dmg.sh`: builds Cherry (Release) and packages a drag-to-install DMG on my Desktop, for installing on my own Macs.
+
+---
+
+## 2026-07-01 - On private GitHub, clean history
+
+- Pushed to github.com/brendanrong/Cherry (private). Single clean history: one "Cherry" root commit + the signing commit, on `main`. Deleted the old `macos-26` branch that carried Ice's full ~1,216-commit history and the original author's commits.
+- `upstream` still points at jordanbaird/Ice locally (invisible on my GitHub) if I ever want to reference it.
+- Minor: my remote uses lowercase `cherry`; GitHub's canonical is `Cherry`, so pushes show a harmless "repository moved" redirect. Optional fix: `git remote set-url origin git@github.com:brendanrong/Cherry.git`
+
+---
+
 ## 2026-07-01 - Signing: switched from ad-hoc to my Apple team
 
 - Set DEVELOPMENT_TEAM = VTMKE23N5G (my team) + automatic signing on both targets; removed the ad-hoc "-" identity.
