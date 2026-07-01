@@ -9,6 +9,13 @@ Ground rules for this fork (personal use only, not shipping):
 
 ---
 
+## 2026-07-01 - Signing: switched from ad-hoc to my Apple team
+
+- Set DEVELOPMENT_TEAM = VTMKE23N5G (my team) + automatic signing on both targets; removed the ad-hoc "-" identity.
+- Why: ad-hoc gave the app a new identity every build, so macOS re-asked for Accessibility/Screen Recording each time. A stable cert = grant once, sticks across rebuilds.
+
+---
+
 ## 2026-07-01 - Full rename to Cherry + repo cleanup
 
 - Renamed the Xcode project, target, scheme, and source folder from Ice to Cherry. `cherry.xcodeproj` and the `Cherry/` source folder now have zero "Ice". Internal code symbols (IceApp, IceBar...) left as-is - invisible to a user, pointless risk to rename.
