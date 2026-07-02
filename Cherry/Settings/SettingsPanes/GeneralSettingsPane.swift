@@ -61,6 +61,8 @@ struct GeneralSettingsPane: View {
     @ViewBuilder
     private var appOptions: some View {
         LaunchAtLogin.Toggle()
+        Toggle("Show Dock icon", isOn: $settings.showDockIcon)
+            .annotation("Turn off to run Cherry only in the menu bar, with no Dock icon.")
     }
 
     // MARK: Ice Icon Options

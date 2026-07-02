@@ -242,7 +242,12 @@ final class AppState: ObservableObject {
 
     /// Activates the app and sets its activation policy.
     func activate(withPolicy policy: NSApplication.ActivationPolicy? = nil) {
-        if let policy {
+        if var policy {
+            // Respect the "Show Dock icon" setting: if the user turned the
+            // Dock icon off, never switch to a regular (Dock-showing) app.
+            if policy == .regular, Defaults.object(forKey: .showDockIcon) as? Bool == false {
+                policy = .accessory
+            }
             NSApp.setActivationPolicy(policy)
         }
         // NSApplication.activate(ignoringOtherApps:) is deprecated, with

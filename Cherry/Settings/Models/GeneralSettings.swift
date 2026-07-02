@@ -3,6 +3,7 @@
 //  Ice
 //
 
+import AppKit
 import Combine
 import OSLog
 import SwiftUI
@@ -15,6 +16,10 @@ final class GeneralSettings: ObservableObject {
     /// A Boolean value that indicates whether the Ice icon
     /// should be shown.
     @Published var showIceIcon = true
+
+    /// Whether Cherry shows a Dock icon while a window is open.
+    /// When off, Cherry stays menu-bar only.
+    @Published var showDockIcon = true
 
     /// An icon to show in the menu bar, with a different image
     /// for when items are visible or hidden.
@@ -85,6 +90,7 @@ final class GeneralSettings: ObservableObject {
     /// Loads the model's initial state.
     private func loadInitialState() {
         Defaults.ifPresent(key: .showIceIcon, assign: &showIceIcon)
+        Defaults.ifPresent(key: .showDockIcon, assign: &showDockIcon)
         Defaults.ifPresent(key: .customIceIconIsTemplate, assign: &customIceIconIsTemplate)
         Defaults.ifPresent(key: .useIceBar, assign: &useIceBar)
         Defaults.ifPresent(key: .showOnClick, assign: &showOnClick)
@@ -125,6 +131,15 @@ final class GeneralSettings: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { showIceIcon in
                 Defaults.set(showIceIcon, forKey: .showIceIcon)
+            }
+            .store(in: &c)
+
+        $showDockIcon
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { showDockIcon in
+                Defaults.set(showDockIcon, forKey: .showDockIcon)
+                NSApp.setActivationPolicy(showDockIcon ? .regular : .accessory)
             }
             .store(in: &c)
 
