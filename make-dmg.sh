@@ -29,7 +29,7 @@ STAGE=$(mktemp -d)
 cp -R "$APP" "$STAGE/Cherry.app"
 ln -s /Applications "$STAGE/Applications"
 
-OUT="$HOME/Desktop/Cherry-$VERSION.dmg"
+OUT="$HOME/Desktop/Cherry.dmg"
 rm -f "$OUT"
 echo "Packaging $OUT ..."
 hdiutil create -volname "Cherry" -srcfolder "$STAGE" -ov -format UDZO "$OUT" >/dev/null
