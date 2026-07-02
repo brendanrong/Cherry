@@ -53,8 +53,13 @@ fi
 
 [ -d "$APP" ] || { echo "Cherry.app not found at: $APP"; exit 1; }
 
+# Version the local filename (reads the real version out of the built app).
+# NOTE: the GitHub release asset must still be uploaded under the fixed name
+# Cherry.dmg (the site's download link resolves by asset filename), so copy:
+#   cp ~/Desktop/Cherry-X.Y.dmg /tmp/Cherry.dmg && gh release upload vX.Y /tmp/Cherry.dmg --clobber
+VER=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Contents/Info.plist")
 VOL="Cherry"
-OUT="$HOME/Desktop/Cherry.dmg"
+OUT="$HOME/Desktop/Cherry-$VER.dmg"
 BG="dmg-assets/dmg-background.png"
 RWDIR=$(mktemp -d)
 RW="$RWDIR/rw.dmg"
@@ -120,3 +125,5 @@ rm -rf "$RWDIR"
 echo ""
 echo "Done -> $OUT (signed with Developer ID, notarized, stapled)"
 echo "Open it to check the layout: Cherry on the left, arrow, Applications on the right."
+echo "Uploading? The asset name must stay Cherry.dmg:"
+echo "  cp \"$OUT\" /tmp/Cherry.dmg && gh release upload v$VER /tmp/Cherry.dmg --clobber && rm /tmp/Cherry.dmg"
