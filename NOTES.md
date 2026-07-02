@@ -9,6 +9,15 @@ Ground rules for this fork (personal use only, not shipping):
 
 ---
 
+## 2026-07-02 (later) - Notarized, plus a prettier installer
+
+- Cherry is now signed with a proper Developer ID and notarized by Apple. Fresh downloads just open. No more "could not verify" scare dialog, no Open Anyway dance (which is the only bypass left, macOS 26 killed right-click > Open).
+- `make-dmg.sh` does the whole run now: build, re-sign for distribution, pretty drag-to-install window (2x retina background), notarize, staple. One command.
+- One-time setup that unlocked it: Developer ID Application cert via Xcode, plus a `Cherry-Notary` keychain profile for notarytool.
+- Also built a `cherry-release` Claude skill, so shipping the next version is just "ship v1.2" in a chat.
+
+---
+
 ## 2026-07-02 - Went public: v1.1, landing site, Dock toggle
 
 Reversed the "keep it private" call from yesterday. Restored full GPL attribution first (Jordan Baird credited in LICENSE + README, marked as a fork of Ice), so publishing is clean.

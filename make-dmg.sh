@@ -1,24 +1,54 @@
 #!/bin/bash
 #
-# make-dmg.sh - Build Cherry (Release) and package a pretty drag-to-install DMG.
-# Personal use only (installing on my own Macs). Not for public distribution.
+# make-dmg.sh - Build Cherry (Release, Developer ID), package a pretty
+# drag-to-install DMG, then notarize + staple it so Gatekeeper is happy.
+#
+# One-time setup (see CHERRY-HANDOFF.md "Signing / versions"):
+#   1. Xcode > Settings > Accounts > Manage Certificates > + > Developer ID Application
+#   2. App-specific password from appleid.apple.com
+#   3. xcrun notarytool store-credentials Cherry-Notary \
+#        --apple-id <apple-id-email> --team-id VTMKE23N5G --password <app-specific-pw>
 #
 # Usage:
-#   bash make-dmg.sh                     # build Release, then package
-#   bash make-dmg.sh /path/to/Cherry.app # skip build, package an existing app
+#   bash make-dmg.sh                     # build Release, then package + notarize
+#   bash make-dmg.sh /path/to/Cherry.app # skip build, package + notarize an existing app
 #
 set -euo pipefail
 cd "$(dirname "$0")"
 
 APP="${1:-}"
-DERIVED=""
+WORK=""
 
 if [ -z "$APP" ]; then
+  if ! security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
+    echo "No 'Developer ID Application' certificate in your keychain."
+    echo "Create one: Xcode > Settings > Accounts > Manage Certificates > + > Developer ID Application"
+    exit 1
+  fi
   echo "Building Cherry (Release)... this can take a minute."
-  DERIVED=$(mktemp -d)
+  WORK=$(mktemp -d)
   xcodebuild -project cherry.xcodeproj -scheme Cherry -configuration Release \
-    -derivedDataPath "$DERIVED" -quiet build
-  APP="$DERIVED/Build/Products/Release/Cherry.app"
+    -archivePath "$WORK/Cherry.xcarchive" -quiet archive
+  cat > "$WORK/export-options.plist" <<'PLIST'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>method</key>
+	<string>developer-id</string>
+	<key>teamID</key>
+	<string>VTMKE23N5G</string>
+	<key>signingStyle</key>
+	<string>automatic</string>
+	<key>destination</key>
+	<string>export</string>
+</dict>
+</plist>
+PLIST
+  echo "Re-signing for distribution (Developer ID)..."
+  xcodebuild -exportArchive -archivePath "$WORK/Cherry.xcarchive" \
+    -exportOptionsPlist "$WORK/export-options.plist" -exportPath "$WORK/export" -quiet
+  APP="$WORK/export/Cherry.app"
 fi
 
 [ -d "$APP" ] || { echo "Cherry.app not found at: $APP"; exit 1; }
@@ -35,7 +65,7 @@ hdiutil detach "/Volumes/$VOL" >/dev/null 2>&1 || true
 # Blank read-write image, sized to the app + a buffer for the layout metadata
 APP_KB=$(du -sk "$APP" | cut -f1)
 SIZE_MB=$(( APP_KB / 1024 + 25 ))
-hdiutil create -size "${SIZE_MB}m" -fs HFS+ -volname "$VOL" -format UDRW -ov "$RW" >/dev/null
+hdiutil create -size "${SIZE_MB}m" -fs HFS+ -volname "$VOL" -ov "$RW" >/dev/null
 
 echo "Laying out the window (Finder may ask permission to control itself the first time)..."
 hdiutil attach "$RW" -noautoopen >/dev/null
@@ -78,10 +108,15 @@ hdiutil detach "/Volumes/$VOL" >/dev/null
 rm -f "$OUT"
 hdiutil convert "$RW" -format UDZO -imagekey zlib-level=9 -o "$OUT" >/dev/null
 
+# Notarize + staple (needs the one-time Cherry-Notary keychain profile, see header)
+echo "Notarizing with Apple... typically 2-5 minutes, don't panic."
+xcrun notarytool submit "$OUT" --keychain-profile "Cherry-Notary" --wait
+xcrun stapler staple "$OUT"
+
 # Cleanup
 rm -rf "$RWDIR"
-[ -n "$DERIVED" ] && rm -rf "$DERIVED"
+[ -n "$WORK" ] && rm -rf "$WORK"
 
 echo ""
-echo "Done -> $OUT"
+echo "Done -> $OUT (signed with Developer ID, notarized, stapled)"
 echo "Open it to check the layout: Cherry on the left, arrow, Applications on the right."
