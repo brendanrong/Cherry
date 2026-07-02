@@ -9,6 +9,19 @@ Ground rules for this fork (personal use only, not shipping):
 
 ---
 
+## 2026-07-02 - Went public: v1.1, landing site, Dock toggle
+
+Reversed the "keep it private" call from yesterday. Restored full GPL attribution first (Jordan Baird credited in LICENSE + README, marked as a fork of Ice), so publishing is clean.
+
+- Repo is public now. Cut v1.0, then v1.1.
+- Landing site up at https://brendanrong.github.io/Cherry (GitHub Pages from /docs). Download button points at /releases/latest/download/Cherry.dmg so it always grabs the newest release, no site edit needed per release.
+- Added a "Show Dock icon" toggle (Settings > General). Additive only, just flips NSApp activation policy between .regular and .accessory. Didn't touch the menu-bar core.
+- Bumped MARKETING_VERSION to 1.1 and made make-dmg.sh output a version-less Cherry.dmg, so the permanent download link keeps working on every release.
+- Updater gotcha: the built-in Sparkle updater points at a dead feed (placeholder URL), so in-app "Check for Updates" errors out. Left it alone, not worth wiring real auto-updates for a personal app. To update: grab the new DMG from the site.
+- Cowork sandbox note: it can't delete files in the repo, so it left a stray .git/index.lock and a build Cherry.dmg behind. Added *.dmg to .gitignore. Clean up with: rm .git/index.lock Cherry.dmg
+
+---
+
 ## 2026-07-01 - Personal DMG (keeping Cherry private)
 
 - Decided to keep Cherry personal, not publish it. It's a GPL-3 fork and I stripped the original author's attribution; distributing publicly would mean restoring credit + open-sourcing under GPL. Not worth it for a personal tool. Personal use = zero obligations.
