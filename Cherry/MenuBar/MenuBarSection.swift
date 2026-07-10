@@ -56,7 +56,15 @@ final class MenuBarSection {
 
     /// A Boolean value that indicates whether the Ice Bar should be used.
     private var useIceBar: Bool {
-        appState?.settings.general.useIceBar ?? false
+        guard let general = appState?.settings.general else {
+            return false
+        }
+        // The Ice Bar steps aside while "show everything on external
+        // displays" is in effect: shows expand into the real menu bar.
+        if general.isExternalDisplayExpansionActive {
+            return false
+        }
+        return general.useIceBar
     }
 
     /// A weak reference to the menu bar manager.
