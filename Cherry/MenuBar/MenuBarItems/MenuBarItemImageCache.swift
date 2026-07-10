@@ -132,8 +132,16 @@ final class MenuBarItemImageCache: ObservableObject {
 
         guard
             let compositeImage = ScreenCapture.captureWindows(with: windowIDs, option: captureOption),
-            CGFloat(compositeImage.width) == boundsUnion.width * scale, // Safety check.
-            !compositeImage.isTransparent()
+            boundsUnion.width > 0,
+            !compositeImage.isTransparent(),
+            // `.bestResolution` captures at the pixel density of the display
+            // the items are actually on, which may not match the caller's
+            // assumed `scale` (e.g. first open on a monitor with a different
+            // scale factor). Derive the true scale from the captured pixels so
+            // icons render at the correct point size, and only accept clean
+            // 1x/2x/3x ratios: anything else means the composite is misaligned
+            // (the old safety check), so fall back to individual capture.
+            let actualScale = Self.snappedScale(CGFloat(compositeImage.width) / boundsUnion.width)
         else {
             result.excluded = items // Exclude all items.
             return result
@@ -146,10 +154,10 @@ final class MenuBarItemImageCache: ObservableObject {
             }
 
             let cropRect = CGRect(
-                x: (bounds.origin.x - boundsUnion.origin.x) * scale,
-                y: (bounds.origin.y - boundsUnion.origin.y) * scale,
-                width: bounds.width * scale,
-                height: bounds.height * scale
+                x: (bounds.origin.x - boundsUnion.origin.x) * actualScale,
+                y: (bounds.origin.y - boundsUnion.origin.y) * actualScale,
+                width: bounds.width * actualScale,
+                height: bounds.height * actualScale
             )
 
             guard
@@ -160,10 +168,17 @@ final class MenuBarItemImageCache: ObservableObject {
                 continue
             }
 
-            result.images[item.tag] = CapturedImage(cgImage: image, scale: scale)
+            result.images[item.tag] = CapturedImage(cgImage: image, scale: actualScale)
         }
 
         return result
+    }
+
+    /// Returns the given ratio snapped to a clean display scale (1x/2x/3x),
+    /// or nil if it isn't close to one.
+    private nonisolated static func snappedScale(_ ratio: CGFloat) -> CGFloat? {
+        let candidates: [CGFloat] = [1, 2, 3]
+        return candidates.first { abs(ratio - $0) < 0.01 }
     }
 
     /// Captures an image of each of the given items individually, then
@@ -179,7 +194,19 @@ final class MenuBarItemImageCache: ObservableObject {
                 result.excluded.append(item)
                 continue
             }
-            result.images[item.tag] = CapturedImage(cgImage: image, scale: scale)
+            // Same story as composite capture: derive the true scale from the
+            // captured pixels instead of trusting the assumed one, so icons
+            // don't render at half or double size on mixed-scale monitor
+            // setups. Fall back to the assumed scale if bounds are unavailable.
+            var trueScale = scale
+            if
+                let bounds = Bridging.getWindowBounds(for: item.windowID),
+                bounds.width > 0,
+                let snapped = Self.snappedScale(CGFloat(image.width) / bounds.width)
+            {
+                trueScale = snapped
+            }
+            result.images[item.tag] = CapturedImage(cgImage: image, scale: trueScale)
         }
 
         return result
