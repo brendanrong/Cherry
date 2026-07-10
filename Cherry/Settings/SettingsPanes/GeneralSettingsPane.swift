@@ -233,7 +233,7 @@ struct GeneralSettingsPane: View {
     @ViewBuilder
     private var showAllOnExternalDisplay: some View {
         Toggle("Show everything on external displays", isOn: $settings.showAllOnExternalDisplay)
-            .annotation("While an external display is connected, all items show in the menu bar itself and automatic rehiding pauses. Unplug and they hide again.")
+            .annotation("While an external display is connected, items expand into the menu bar itself and automatic rehiding pauses. The built-in screen keeps the floating bar. Unplug and everything hides again.")
     }
 
     @ViewBuilder

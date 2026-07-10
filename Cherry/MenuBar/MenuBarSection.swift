@@ -59,9 +59,18 @@ final class MenuBarSection {
         guard let general = appState?.settings.general else {
             return false
         }
-        // The Ice Bar steps aside while "show everything on external
-        // displays" is in effect: shows expand into the real menu bar.
+        // While "show everything on external displays" is in effect, the
+        // behavior is per-screen: interacting on the external display
+        // expands into the real menu bar (plenty of room), interacting on
+        // the built-in screen keeps the floating bar (the notch hides
+        // items there).
         if general.isExternalDisplayExpansionActive {
+            guard let screen = NSScreen.screenWithMouse ?? NSScreen.main else {
+                return false
+            }
+            if CGDisplayIsBuiltin(screen.displayID) != 0 {
+                return general.useIceBar
+            }
             return false
         }
         return general.useIceBar
@@ -76,6 +85,12 @@ final class MenuBarSection {
     private weak var screenForIceBar: NSScreen? {
         guard let appState else {
             return nil
+        }
+        if appState.settings.general.isExternalDisplayExpansionActive {
+            // Docked, per-screen mode: the floating bar only appears from
+            // interactions on the built-in screen, so show it there, not
+            // on whichever screen happens to have key focus.
+            return NSScreen.screenWithMouse ?? NSScreen.main
         }
         if appState.activeSpace.isFullscreen {
             return NSScreen.screenWithMouse ?? NSScreen.main
