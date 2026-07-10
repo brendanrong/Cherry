@@ -9,6 +9,13 @@ Ground rules for this fork (personal use only, not shipping):
 
 ---
 
+## 2026-07-10 - v1.2: monitor fixes
+
+- Fixed the bar icons rendering at the wrong size when opening Cherry's bar on a monitor with a different scale than the MacBook screen. Root cause: the icon capture assumed a pixel density instead of reading the real one, and cached the mistake forever. Now it derives the scale from the actual pixels.
+- New toggle in Settings, General: "Show everything on external displays". Plug in a monitor and all menu bar items stay visible (auto-rehide pauses); unplug and Cherry tucks them away again. Note macOS mirrors the menu bar across displays, so while docked everything shows on the laptop too. No way around that.
+
+---
+
 ## 2026-07-02 (later) - Notarized, plus a prettier installer
 
 - Cherry is now signed with a proper Developer ID and notarized by Apple. Fresh downloads just open. No more "could not verify" scare dialog, no Open Anyway dance (which is the only bypass left, macOS 26 killed right-click > Open).
