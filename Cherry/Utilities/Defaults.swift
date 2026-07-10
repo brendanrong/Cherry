@@ -140,6 +140,7 @@ extension Defaults {
         // MARK: General Settings
         case showIceIcon = "ShowIceIcon"
         case showDockIcon = "ShowDockIcon"
+        case showAllOnExternalDisplay = "ShowAllOnExternalDisplay"
         case iceIcon = "IceIcon"
         case customIceIconIsTemplate = "CustomIceIconIsTemplate"
         case useIceBar = "UseIceBar"

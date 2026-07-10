@@ -227,6 +227,13 @@ struct GeneralSettingsPane: View {
         if settings.autoRehide {
             rehideStrategyPicker
         }
+        showAllOnExternalDisplay
+    }
+
+    @ViewBuilder
+    private var showAllOnExternalDisplay: some View {
+        Toggle("Show everything on external displays", isOn: $settings.showAllOnExternalDisplay)
+            .annotation("While an external display is connected, all menu bar items stay visible and automatic rehiding pauses.")
     }
 
     @ViewBuilder

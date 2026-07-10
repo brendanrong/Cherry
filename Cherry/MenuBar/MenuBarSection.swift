@@ -241,6 +241,9 @@ final class MenuBarSection {
         guard
             let appState,
             appState.settings.general.autoRehide,
+            // Rehide stands down while "show everything on external
+            // displays" is in effect.
+            !appState.settings.general.isExternalDisplayExpansionActive,
             case .timed = appState.settings.general.rehideStrategy
         else {
             return

@@ -213,6 +213,9 @@ extension HIDEventManager {
     private func handleSmartRehide(with event: NSEvent, appState: AppState, screen: NSScreen) {
         guard
             appState.settings.general.autoRehide,
+            // Rehide stands down while "show everything on external
+            // displays" is in effect.
+            !appState.settings.general.isExternalDisplayExpansionActive,
             case .smart = appState.settings.general.rehideStrategy
         else {
             return

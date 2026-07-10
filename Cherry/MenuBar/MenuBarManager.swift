@@ -75,9 +75,47 @@ final class MenuBarManager: ObservableObject {
         }
     }
 
+    /// Shows the hidden section while an external display is connected,
+    /// and tucks it away again when the last one disconnects. Only does
+    /// anything when the user has enabled the option in General settings.
+    private func applyExternalDisplayExpansion() {
+        guard
+            let appState,
+            appState.settings.general.showAllOnExternalDisplay,
+            let hiddenSection = section(withName: .hidden)
+        else {
+            return
+        }
+        if NSScreen.screens.count > 1 {
+            hiddenSection.show()
+        } else {
+            hiddenSection.hide()
+        }
+    }
+
     /// Configures the internal observers for the manager.
     private func configureCancellables() {
         var c = Set<AnyCancellable>()
+
+        if let appState {
+            // Show everything while an external display is connected, when
+            // the user has that option turned on. Debounced so displays can
+            // settle after connect/disconnect. The settings publisher also
+            // fires on subscription, which applies the state at launch.
+            Publishers.Merge(
+                NotificationCenter.default
+                    .publisher(for: NSApplication.didChangeScreenParametersNotification)
+                    .map { _ in () },
+                appState.settings.general.$showAllOnExternalDisplay
+                    .removeDuplicates()
+                    .map { _ in () }
+            )
+            .debounce(for: 0.5, scheduler: DispatchQueue.main)
+            .sink { [weak self] in
+                self?.applyExternalDisplayExpansion()
+            }
+            .store(in: &c)
+        }
 
         NSApp.publisher(for: \.currentSystemPresentationOptions)
             .receive(on: DispatchQueue.main)

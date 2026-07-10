@@ -21,6 +21,17 @@ final class GeneralSettings: ObservableObject {
     /// When off, Cherry stays menu-bar only.
     @Published var showDockIcon = true
 
+    /// Whether the hidden section stays visible while an external
+    /// display is connected. Menu bar items are mirrored across all
+    /// displays, so this shows everything everywhere while docked.
+    @Published var showAllOnExternalDisplay = false
+
+    /// Whether the "show everything on external displays" option is
+    /// currently in effect (toggle on + an external display connected).
+    var isExternalDisplayExpansionActive: Bool {
+        showAllOnExternalDisplay && NSScreen.screens.count > 1
+    }
+
     /// An icon to show in the menu bar, with a different image
     /// for when items are visible or hidden.
     @Published var iceIcon: ControlItemImageSet = .defaultIceIcon
@@ -91,6 +102,7 @@ final class GeneralSettings: ObservableObject {
     private func loadInitialState() {
         Defaults.ifPresent(key: .showIceIcon, assign: &showIceIcon)
         Defaults.ifPresent(key: .showDockIcon, assign: &showDockIcon)
+        Defaults.ifPresent(key: .showAllOnExternalDisplay, assign: &showAllOnExternalDisplay)
         Defaults.ifPresent(key: .customIceIconIsTemplate, assign: &customIceIconIsTemplate)
         Defaults.ifPresent(key: .useIceBar, assign: &useIceBar)
         Defaults.ifPresent(key: .showOnClick, assign: &showOnClick)
@@ -140,6 +152,13 @@ final class GeneralSettings: ObservableObject {
             .sink { showDockIcon in
                 Defaults.set(showDockIcon, forKey: .showDockIcon)
                 NSApp.setActivationPolicy(showDockIcon ? .regular : .accessory)
+            }
+            .store(in: &c)
+
+        $showAllOnExternalDisplay
+            .receive(on: DispatchQueue.main)
+            .sink { showAllOnExternalDisplay in
+                Defaults.set(showAllOnExternalDisplay, forKey: .showAllOnExternalDisplay)
             }
             .store(in: &c)
 
