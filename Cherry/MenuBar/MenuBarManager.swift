@@ -75,46 +75,34 @@ final class MenuBarManager: ObservableObject {
         }
     }
 
-    /// The first non-built-in screen, if one is connected.
-    private var externalScreen: NSScreen? {
-        NSScreen.screens.first { CGDisplayIsBuiltin($0.displayID) == 0 }
-    }
+    /// Whether the manager expanded the hidden items because of the
+    /// "show everything on external displays" option. Tracked so the
+    /// items are only tucked away again when WE were the ones who
+    /// expanded them, never after a manual show.
+    private var didExpandForExternalDisplay = false
 
-    /// Keeps hidden items visible while an external display is connected,
-    /// and tucks them away again when the last one disconnects. Only does
-    /// anything when the user has enabled the option in General settings.
-    ///
-    /// With the Ice Bar enabled, the bar is pinned open on the external
-    /// display only, so the built-in screen keeps its tidy menu bar. In
-    /// plain menu bar mode the hidden section is shown, which macOS
-    /// mirrors across all displays.
+    /// Expands the hidden items into the real menu bar while an external
+    /// display is connected, and tucks them away again when the last one
+    /// disconnects or the option is turned off. Bypasses the Ice Bar:
+    /// the whole point is a full, real menu bar while docked.
     private func applyExternalDisplayExpansion() {
-        guard let appState, let hiddenSection = section(withName: .hidden) else {
-            return
-        }
-        let general = appState.settings.general
-
-        guard general.showAllOnExternalDisplay else {
-            // Toggle is off. If we were pinned, release the panel.
-            if iceBarPanel.isPinned {
-                iceBarPanel.unpin()
-            }
+        guard let appState else {
             return
         }
 
-        if let externalScreen {
-            if general.useIceBar {
-                iceBarPanel.pin(on: externalScreen)
-            } else {
-                hiddenSection.show()
+        let active = appState.settings.general.isExternalDisplayExpansionActive
+
+        if active {
+            didExpandForExternalDisplay = true
+            // The Ice Bar has no business being open while everything is
+            // expanded in the actual menu bar.
+            iceBarPanel.close()
+            for section in sections where section.name != .alwaysHidden {
+                section.controlItem.state = .showSection
             }
-        } else {
-            // Last external display disconnected: back to tidy.
-            if iceBarPanel.isPinned {
-                iceBarPanel.unpin()
-            } else {
-                hiddenSection.hide()
-            }
+        } else if didExpandForExternalDisplay {
+            didExpandForExternalDisplay = false
+            section(withName: .hidden)?.hide()
         }
     }
 
@@ -127,14 +115,9 @@ final class MenuBarManager: ObservableObject {
             // the user has that option turned on. Debounced so displays can
             // settle after connect/disconnect. The settings publisher also
             // fires on subscription, which applies the state at launch.
-            // Space changes are included because the Ice Bar hides itself
-            // when the active space changes; a pinned bar should come back.
-            Publishers.Merge3(
+            Publishers.Merge(
                 NotificationCenter.default
                     .publisher(for: NSApplication.didChangeScreenParametersNotification)
-                    .map { _ in () },
-                NSWorkspace.shared.notificationCenter
-                    .publisher(for: NSWorkspace.activeSpaceDidChangeNotification)
                     .map { _ in () },
                 appState.settings.general.$showAllOnExternalDisplay
                     .removeDuplicates()

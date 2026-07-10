@@ -12,7 +12,7 @@ Ground rules for this fork (personal use only, not shipping):
 ## 2026-07-10 - v1.2: monitor fixes
 
 - Fixed the bar icons rendering at the wrong size when opening Cherry's bar on a monitor with a different scale than the MacBook screen. Root cause: the icon capture assumed a pixel density instead of reading the real one, and cached the mistake forever. Now it derives the scale from the actual pixels.
-- New toggle in Settings, General: "Show everything on external displays". With the Ice Bar on (my setup), the bar stays pinned open on the monitor only, so the laptop keeps its clean hidden look. In plain menu bar mode it shows the hidden section, which macOS mirrors to every display (no way around that one). Unplug the monitor and everything tucks away again. Auto-rehide pauses while it's active.
+- New toggle in Settings, General: "Show everything on external displays". Plug in a monitor and every menu bar item expands into the real menu bar (no floating bar, Ice Bar bypassed); unplug and the hidden format comes back. Auto-rehide pauses while it's active. One macOS reality: the menu bar is mirrored, so while docked the laptop shows everything too.
 
 ---
 

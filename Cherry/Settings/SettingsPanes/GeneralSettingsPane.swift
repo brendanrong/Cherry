@@ -233,7 +233,7 @@ struct GeneralSettingsPane: View {
     @ViewBuilder
     private var showAllOnExternalDisplay: some View {
         Toggle("Show everything on external displays", isOn: $settings.showAllOnExternalDisplay)
-            .annotation("While an external display is connected, hidden items stay visible there and automatic rehiding pauses. With the Ice Bar, the bar stays pinned open on the external display only.")
+            .annotation("While an external display is connected, all items show in the menu bar itself and automatic rehiding pauses. Unplug and they hide again.")
     }
 
     @ViewBuilder

@@ -156,38 +156,12 @@ final class IceBarPanel: NSPanel {
         setFrameOrigin(getOrigin(for: appState.settings.general.iceBarLocation))
     }
 
-    /// The screen the panel is pinned to while the "show everything on
-    /// external displays" option is active, or nil when not pinned.
-    private(set) var pinnedScreen: NSScreen?
-
-    /// Whether the panel is currently pinned open.
-    var isPinned: Bool { pinnedScreen != nil }
-
-    /// Pins the panel open on the given screen, showing the hidden section.
-    /// While pinned, ``close()`` is a no-op; only ``unpin()`` closes it.
-    func pin(on screen: NSScreen) {
-        pinnedScreen = screen
-        Task {
-            await show(section: .hidden, on: screen)
-        }
-    }
-
-    /// Unpins the panel and closes it.
-    func unpin() {
-        pinnedScreen = nil
-        close()
-    }
-
     /// Shows the panel on the given screen, displaying the given
     /// menu bar section.
     func show(section: MenuBarSection.Name, on screen: NSScreen) async {
         guard let appState else {
             return
         }
-
-        // While pinned, the panel stays put on its pinned screen no matter
-        // which screen the caller asked for.
-        let screen = pinnedScreen ?? screen
 
         // IMPORTANT: We must set the navigation state and current section
         // before updating the caches.
@@ -237,12 +211,6 @@ final class IceBarPanel: NSPanel {
     }
 
     override func close() {
-        guard pinnedScreen == nil else {
-            // Pinned open ("show everything on external displays").
-            // Item clicks, space changes, and rehide paths all funnel
-            // through here; ignore them all. Only unpin() closes.
-            return
-        }
         super.close()
         contentView = nil
         currentSection = nil
