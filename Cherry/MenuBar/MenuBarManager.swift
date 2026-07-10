@@ -75,21 +75,46 @@ final class MenuBarManager: ObservableObject {
         }
     }
 
-    /// Shows the hidden section while an external display is connected,
-    /// and tucks it away again when the last one disconnects. Only does
+    /// The first non-built-in screen, if one is connected.
+    private var externalScreen: NSScreen? {
+        NSScreen.screens.first { CGDisplayIsBuiltin($0.displayID) == 0 }
+    }
+
+    /// Keeps hidden items visible while an external display is connected,
+    /// and tucks them away again when the last one disconnects. Only does
     /// anything when the user has enabled the option in General settings.
+    ///
+    /// With the Ice Bar enabled, the bar is pinned open on the external
+    /// display only, so the built-in screen keeps its tidy menu bar. In
+    /// plain menu bar mode the hidden section is shown, which macOS
+    /// mirrors across all displays.
     private func applyExternalDisplayExpansion() {
-        guard
-            let appState,
-            appState.settings.general.showAllOnExternalDisplay,
-            let hiddenSection = section(withName: .hidden)
-        else {
+        guard let appState, let hiddenSection = section(withName: .hidden) else {
             return
         }
-        if NSScreen.screens.count > 1 {
-            hiddenSection.show()
+        let general = appState.settings.general
+
+        guard general.showAllOnExternalDisplay else {
+            // Toggle is off. If we were pinned, release the panel.
+            if iceBarPanel.isPinned {
+                iceBarPanel.unpin()
+            }
+            return
+        }
+
+        if let externalScreen {
+            if general.useIceBar {
+                iceBarPanel.pin(on: externalScreen)
+            } else {
+                hiddenSection.show()
+            }
         } else {
-            hiddenSection.hide()
+            // Last external display disconnected: back to tidy.
+            if iceBarPanel.isPinned {
+                iceBarPanel.unpin()
+            } else {
+                hiddenSection.hide()
+            }
         }
     }
 
@@ -102,9 +127,14 @@ final class MenuBarManager: ObservableObject {
             // the user has that option turned on. Debounced so displays can
             // settle after connect/disconnect. The settings publisher also
             // fires on subscription, which applies the state at launch.
-            Publishers.Merge(
+            // Space changes are included because the Ice Bar hides itself
+            // when the active space changes; a pinned bar should come back.
+            Publishers.Merge3(
                 NotificationCenter.default
                     .publisher(for: NSApplication.didChangeScreenParametersNotification)
+                    .map { _ in () },
+                NSWorkspace.shared.notificationCenter
+                    .publisher(for: NSWorkspace.activeSpaceDidChangeNotification)
                     .map { _ in () },
                 appState.settings.general.$showAllOnExternalDisplay
                     .removeDuplicates()
