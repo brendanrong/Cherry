@@ -9,7 +9,7 @@ Ground rules for this fork (personal use only, not shipping):
 
 ---
 
-## 2026-07-10 - v1.2: monitor fixes
+## 2026-07-10 - v1.3: monitor fixes
 
 - Fixed the bar icons rendering at the wrong size when opening Cherry's bar on a monitor with a different scale than the MacBook screen. Root cause: the icon capture assumed a pixel density instead of reading the real one, and cached the mistake forever. Now it derives the scale from the actual pixels.
 - New toggle in Settings, General: "Show everything on external displays". Plug in a monitor and every menu bar item expands into the real menu bar; unplug and the hidden format comes back. It's per-screen while docked: interacting on the monitor expands/collapses in the actual menu bar, interacting on the MacBook screen still uses the floating bar (the notch eats items up there). Auto-rehide pauses while it's active. One macOS reality: the menu bar is mirrored, so expanded items show on the laptop's bar too while docked.
